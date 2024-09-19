@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skin Lesion Detection</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            border: 1px solid #ddd;
+            border-radius: 15px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            align-items: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            color: #555;
+        }
+        input[type="file"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            cursor: pointer;
+            align-items: center;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            background-color: #3498db;
+            color: #ffffff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        #result {
+            color: #e74c3c;
+        }
+        #predictions {
+        color: #27ae60;
+        font-size: 25px;
+        text-align: center;
+        padding-top: 15px;
+        }
+        #imagePreview {
+            margin-top: 20px;
+        }
+        #imagePreview img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <center>
+    <h1>Skin Lesion Detection</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="image">Upload an image of the skin lesion:</label>
+            <input type="file" id="image" name="image" accept="image/*" required>
+            <div id="imagePreview"></div>
+        </div>
+        <button type="submit">Predict Lesion Type</button>
+    </form>
+    </center>
+    <div id="result"></div>
+    <div id="predictions"></div>
+
+</div>
+
+<script>
+    // Add event listener for file input change to preview the image
+    document.getElementById('image').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.style.maxWidth = '100%'; // Ensure the image fits within its container
+                img.style.height = 'auto';   // Maintain aspect ratio
+                const preview = document.getElementById('imagePreview');
+                preview.innerHTML = ''; // Clear previous previews
+                preview.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    document.getElementById('uploadForm').onsubmit = async function(event) {
+        event.preventDefault();
+
+        const formData = new FormData();
+        const imageFile = document.getElementById('image').files[0];
+        formData.append('image', imageFile);
+
+        try {
+            const response = await fetch('/predict', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            if (result.error) {
+                document.getElementById('result').innerText = `Error: ${result.error}`;
+            } else {
+                document.getElementById('result').innerText = '';
+                document.getElementById('predictions').innerText = `Predicted Lesion Type: ${result.lesion_type}`;
+            }
+        } catch (error) {
+            document.getElementById('result').innerText = 'An error occurred during prediction.';
+        }
+    };
+</script>
+
+
+</body>
+</html>
